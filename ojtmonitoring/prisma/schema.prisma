@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Companies {
+  id             Int             @id @default(autoincrement())
+  name           String
+  address        String?
+  contact_person String?
+  contact_number String?
+  created_at     DateTime        @default(now())
+  ojt_assignments Ojt_assignments[]
+}
+
+model Daily_logs {
+  id            Int            @id @default(autoincrement())
+  assignment_id Int?
+  date          DateTime?
+  time_in       DateTime?
+  time_out      DateTime?
+  tasks         String?
+  remarks       String?
+
+  assignment Ojt_assignments? @relation(fields: [assignment_id], references: [id])
+}
+
+model Evaluations {
+  id            Int             @id @default(autoincrement())
+  assignment_id Int?
+  evaluator     String?
+  score         Int?
+  comments      String?
+  date_evaluated DateTime?
+
+  assignment Ojt_assignments? @relation(fields: [assignment_id], references: [id])
+}
+
+model Login_logs {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  login_time DateTime @default(now())
+
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+model Ojt_assignments {
+  id             Int             @id @default(autoincrement())
+  user_id        Int?
+  company_id     Int?
+  start_date     DateTime?
+  end_date       DateTime?
+  hours_required Int?
+  status         Status          @default(pending)
+
+  user    Users?     @relation(fields: [user_id], references: [id])
+  company Companies? @relation(fields: [company_id], references: [id])
+
+  daily_logs   Daily_logs[]
+  evaluations  Evaluations[]
+}
+
+model Users {
+  id         Int           @id @default(autoincrement())
+  email      String        @unique
+  password   String
+  role       Role          @default(student)
+  created_at DateTime      @default(now())
+  first_name String
+  last_name  String
+  disabled   Boolean       @default(false)
+
+  login_logs     Login_logs[]
+  ojt_assignments Ojt_assignments[]
+}
+
+enum Role {
+  student
+  admin
+  coordinator
+}
+
+enum Status {
+  pending
+  ongoing
+  completed
+}
