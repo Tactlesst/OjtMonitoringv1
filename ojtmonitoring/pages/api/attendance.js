@@ -7,11 +7,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { assignment_id } = req.body;
-  const studentId = parseInt(assignment_id); // assuming this is student_id
+  const { userId } = req.body;  // Get the userId instead of assignment_id
+  const studentId = parseInt(userId); // Assuming userId is the correct field for unique identification
 
   if (!studentId || isNaN(studentId)) {
-    return res.status(400).json({ message: 'Invalid student ID' });
+    return res.status(400).json({ message: 'Invalid user ID' });
   }
 
   const now = dayjs();
@@ -67,7 +67,7 @@ export default async function handler(req, res) {
         }.`,
       });
     } else {
-      // Insert new record
+      // Insert new record if no existing attendance record for today
       await db.query(
         `INSERT INTO attendance (student_id, ${field}, ${statusField}, date) VALUES (?, ?, ?, ?)`,
         [studentId, time, status, date]
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error('Error:', error);
     return res.status(500).json({ message: 'Something went wrong.' });
   }
 }

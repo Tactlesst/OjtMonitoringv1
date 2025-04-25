@@ -17,7 +17,7 @@ export default function QRScan() {
 
   const getTimePeriod = () => {
     const hour = dayjs().hour();
-    return hour < 12 ? 'Morning Check-In' : 'Afternoon Check-In';
+    return hour < 12 ? 'Morning' : 'Afternoon';
   };
 
   const addLog = (text, success = true, status = '') => {
@@ -59,20 +59,51 @@ export default function QRScan() {
           playScanSound();
           addLog(`Scanned: ${decodedText}`, true);
 
-          if (!/^\d+$/.test(decodedText)) {
-            addLog(`Invalid QR: ${decodedText}`, false);
-            await showAlert('Invalid QR', 'This QR is not a valid ID.', 'error');
-            await scanner.stop();
-            await scanner.clear();
-            setScanning(false);
-            return;
-          }
-
           try {
+            // Parse the QR data (assuming the QR contains userId)
+            const qrData = JSON.parse(decodedText);
+
+            // Check if the QR data contains a valid userId
+            if (!qrData.userId || isNaN(qrData.userId)) {
+              addLog('Invalid QR data: No valid userId found', false);
+              await showAlert('Invalid QR', 'No valid userId found in the QR.', 'error');
+              return;
+            }
+
+            // Determine check-in time (Morning or Afternoon)
+            const currentTime = dayjs();
+            const checkInTime = currentTime.format('HH:mm');
+            let status = 'present';
+            let checkInField = 'checkin_morning';
+            let statusField = 'status_morning';
+
+            // Morning Check-In logic
+            if (getTimePeriod() === 'Morning') {
+              if (currentTime.isAfter(dayjs().hour(8).minute(0))) {
+                status = 'late';
+              }
+              checkInField = 'checkin_morning';
+              statusField = 'status_morning';
+            }
+            // Afternoon Check-In logic
+            else if (getTimePeriod() === 'Afternoon') {
+              if (currentTime.isAfter(dayjs().hour(13).minute(0))) {
+                status = 'late';
+              }
+              checkInField = 'checkin_afternoon';
+              statusField = 'status_afternoon';
+            }
+
+            // Send the data to update the attendance in the database
             const res = await fetch('/api/attendance', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ assignment_id: decodedText }),
+              body: JSON.stringify({
+                user_id: qrData.userId,  // Send the userId from the QR code
+                [checkInField]: checkInTime,
+                [statusField]: status,
+                date: currentTime.format('YYYY-MM-DD'),
+              }),
             });
 
             const data = await res.json();
@@ -88,9 +119,9 @@ export default function QRScan() {
               await showAlert('Error', data.message, 'error');
             }
           } catch (err) {
-            console.error(err);
-            addLog(`Network error on: ${decodedText}`, false);
-            await showAlert('Network Error', 'Could not reach server.', 'error');
+            console.error('Error processing QR data:', err);
+            addLog('Invalid QR data', false);
+            await showAlert('Invalid QR', 'Failed to process the QR data.', 'error');
           } finally {
             await scanner.stop();
             await scanner.clear();
@@ -122,7 +153,7 @@ export default function QRScan() {
   return (
     <div className="text-center">
       <p className="text-gray-700 mb-2 text-lg font-semibold">QR Attendance Scanner</p>
-      <p className="text-blue-500 font-medium">{timePeriod}</p>
+      <p className="text-blue-500 font-medium">{timePeriod} Check-In</p>
 
       <div
         id={qrRegionId}
@@ -169,13 +200,7 @@ export default function QRScan() {
                 logs.map((log, idx) => (
                   <li
                     key={idx}
-                    className={`mb-1 ${
-                      log.status === 'late'
-                        ? 'text-yellow-600'
-                        : log.success
-                        ? 'text-green-700'
-                        : 'text-red-600'
-                    }`}
+                    className={`mb-1 ${log.status === 'late' ? 'text-yellow-600' : log.success ? 'text-green-700' : 'text-red-600'}`}
                   >
                     [{log.time}] {log.text}
                   </li>

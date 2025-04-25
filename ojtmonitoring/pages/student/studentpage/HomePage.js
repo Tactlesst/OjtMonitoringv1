@@ -78,8 +78,11 @@ const HomePage = ({ user }) => {
   const qrData = JSON.stringify({
     userId: user?.userId,
     firstName: studentData?.name?.split(' ')[0] || '',
-    lastName: studentData?.name?.split(' ')[1] || '',
-    totalHours: studentData?.totalHours || 0
+    firstName2: studentData?.name?.split(' ')[1] || '',
+    lastName: studentData?.name?.split(' ')[2] || '',
+    totalHours: studentData?.totalHours || 0,
+        email: studentData?.email || '',
+    student_id: studentData?.studentId || ''
   });
 
   useEffect(() => {
