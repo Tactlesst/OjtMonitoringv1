@@ -8,6 +8,7 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [studentId, setStudentId] = useState(''); // New state for student_id
   const router = useRouter(); // Initialize useRouter
 
   const handleSubmit = async (e) => {
@@ -22,7 +23,13 @@ export default function Register() {
       const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ first_name: firstName, last_name: lastName, email, password }),
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          password,
+          student_id: studentId, // Send student_id along with other data
+        }),
       });
 
       const data = await response.json();
@@ -91,6 +98,16 @@ export default function Register() {
               placeholder="Confirm your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700">Student ID</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:ring-blue-300"
+              placeholder="Enter your student ID"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
             />
           </div>
           <button

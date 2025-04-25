@@ -35,7 +35,7 @@ export default function Header() {
           <a href="#AboutUsSection" className={`hover:font-bold transition-all ${activeSection === 'AboutUsSection' ? 'font-bold' : ''}`}>
             About Us
           </a>
-          <a href="#ContactUsSection" className="hover:font-bold transition-all">Contact Us</a>
+          <a href="#ContactUsSection" className={`hover:font-bold transition-all ${activeSection === 'ContactUsSection' ? 'font-bold' : ''}`}>Contact Us</a>
           <a href="/auth" className="hover:font-bold transition-all">Log In</a>
         </div>
       </div>

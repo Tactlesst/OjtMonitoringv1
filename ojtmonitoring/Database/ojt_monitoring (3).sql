@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 10, 2025 at 12:01 AM
+-- Generation Time: Apr 25, 2025 at 03:22 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,35 @@ SET time_zone = "+00:00";
 --
 -- Database: `ojt_monitoring`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `attendance`
+--
+
+CREATE TABLE `attendance` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `checkin_morning` time DEFAULT NULL,
+  `checkout_morning` time DEFAULT NULL,
+  `checkin_afternoon` time DEFAULT NULL,
+  `checkout_afternoon` time DEFAULT NULL,
+  `status_morning` enum('present','absent','late') DEFAULT 'present',
+  `status_afternoon` enum('present','absent','late') DEFAULT 'present',
+  `date` date DEFAULT curdate(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `student_id`, `checkin_morning`, `checkout_morning`, `checkin_afternoon`, `checkout_afternoon`, `status_morning`, `status_afternoon`, `date`, `created_at`, `updated_at`) VALUES
+(1, 2, '08:00:00', '12:00:00', '13:00:00', '17:00:00', 'present', 'late', '2025-04-23', '2025-04-23 07:28:27', '2025-04-24 09:24:14'),
+(2, 3, '09:00:00', '12:00:00', '13:00:00', '17:00:00', 'late', 'present', '2025-04-24', '2025-04-23 07:28:27', '2025-04-24 08:08:56'),
+(3, 2, '08:30:00', '12:00:00', '13:00:00', '17:00:00', 'present', 'late', '2025-04-24', '2025-04-24 09:16:36', '2025-04-24 09:23:43');
 
 -- --------------------------------------------------------
 
@@ -115,7 +144,38 @@ INSERT INTO `login_logs` (`id`, `user_id`, `login_time`) VALUES
 (42, 2, '2025-04-09 12:08:14'),
 (43, 3, '2025-04-09 12:10:22'),
 (44, 4, '2025-04-09 12:11:24'),
-(45, 3, '2025-04-09 15:12:18');
+(45, 3, '2025-04-09 15:12:18'),
+(46, 2, '2025-04-21 17:53:30'),
+(47, 2, '2025-04-21 17:54:26'),
+(48, 3, '2025-04-21 17:54:55'),
+(49, 4, '2025-04-21 17:57:04'),
+(50, 2, '2025-04-24 06:16:38'),
+(51, 2, '2025-04-24 06:32:35'),
+(52, 2, '2025-04-24 06:37:08'),
+(53, 2, '2025-04-24 06:50:48'),
+(54, 2, '2025-04-24 07:02:19'),
+(55, 2, '2025-04-24 07:12:43'),
+(56, 2, '2025-04-24 07:26:10'),
+(57, 2, '2025-04-24 07:38:20'),
+(58, 2, '2025-04-24 07:49:57'),
+(59, 2, '2025-04-24 08:07:47'),
+(60, 2, '2025-04-24 08:24:26'),
+(61, 2, '2025-04-24 08:34:47'),
+(62, 2, '2025-04-24 08:46:25'),
+(63, 2, '2025-04-24 08:59:18'),
+(64, 2, '2025-04-24 09:09:35'),
+(65, 2, '2025-04-24 09:23:59'),
+(67, 6, '2025-04-24 09:30:33'),
+(68, 2, '2025-04-24 09:40:57'),
+(69, 6, '2025-04-24 09:41:10'),
+(70, 6, '2025-04-24 09:57:38'),
+(71, 6, '2025-04-24 10:13:04'),
+(72, 6, '2025-04-24 10:32:22'),
+(73, 6, '2025-04-24 11:10:58'),
+(74, 2, '2025-04-24 11:16:32'),
+(75, 6, '2025-04-24 13:22:49'),
+(76, 2, '2025-04-24 13:31:20'),
+(77, 2, '2025-04-24 15:27:21');
 
 -- --------------------------------------------------------
 
@@ -136,11 +196,27 @@ CREATE TABLE `ojt_assignments` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `progress`
+--
+
+CREATE TABLE `progress` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `hours_completed` decimal(5,2) DEFAULT 0.00,
+  `task_completed` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
+  `student_id` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `role` enum('student','admin','coordinator') DEFAULT 'student',
@@ -154,14 +230,22 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password`, `role`, `created_at`, `first_name`, `last_name`, `disabled`) VALUES
-(2, 'user@gmail.com', '$2b$10$1hYEbCvFtT8OL8zj1SNUa.SF0zPmmybFHEPn59maqm5U2/CilB7ZG', 'student', '2025-04-08 10:54:53', 'user', 'user', 0),
-(3, 'Admin@gmail.com', '$2b$10$.1x8Ub9ZA86R27rpC5kzIuCW9hKzGc/2cho66z75yW8MYsDiSSsq6', 'admin', '2025-04-09 08:33:18', 'Admin', 'Admin', 0),
-(4, 'Coordinator@gmail.com', '$2b$10$hnsOtgi86XHMob8a6GI/DuebXdiasYWaH48XSSv3mpG4zAXCJ/b2O', 'coordinator', '2025-04-09 10:03:14', 'Coordinator', 'Coordinator', 0);
+INSERT INTO `users` (`id`, `student_id`, `email`, `password`, `role`, `created_at`, `first_name`, `last_name`, `disabled`) VALUES
+(2, 'c11', 'user@gmail.com', '$2b$10$1hYEbCvFtT8OL8zj1SNUa.SF0zPmmybFHEPn59maqm5U2/CilB7ZG', 'student', '2025-04-08 10:54:53', 'user', 'user', 0),
+(3, '', 'Admin@gmail.com', '$2b$10$.1x8Ub9ZA86R27rpC5kzIuCW9hKzGc/2cho66z75yW8MYsDiSSsq6', 'admin', '2025-04-09 08:33:18', 'Admin', 'Admin', 0),
+(4, '', 'Coordinator@gmail.com', '$2b$10$hnsOtgi86XHMob8a6GI/DuebXdiasYWaH48XSSv3mpG4zAXCJ/b2O', 'coordinator', '2025-04-09 10:03:14', 'Coordinator', 'Coordinator', 0),
+(6, 'c21', 'nasefaquiatan@gmail.com', '$2b$10$LpXqtcQVLK5Y.kSBQZcej.xoDT5xHMCKbhfnnDWSM4doyF3nPaZR6', 'student', '2025-04-24 09:30:20', 'nazef hawk', 'Lague', 0);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `attendance`
+--
+ALTER TABLE `attendance`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`);
 
 --
 -- Indexes for table `companies`
@@ -199,6 +283,13 @@ ALTER TABLE `ojt_assignments`
   ADD KEY `company_id` (`company_id`);
 
 --
+-- Indexes for table `progress`
+--
+ALTER TABLE `progress`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -210,6 +301,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `attendance`
+--
+ALTER TABLE `attendance`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
@@ -219,7 +316,7 @@ ALTER TABLE `companies`
 -- AUTO_INCREMENT for table `daily_logs`
 --
 ALTER TABLE `daily_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `evaluations`
@@ -231,7 +328,7 @@ ALTER TABLE `evaluations`
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
 
 --
 -- AUTO_INCREMENT for table `ojt_assignments`
@@ -240,14 +337,26 @@ ALTER TABLE `ojt_assignments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `progress`
+--
+ALTER TABLE `progress`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `attendance`
+--
+ALTER TABLE `attendance`
+  ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `daily_logs`
@@ -273,6 +382,12 @@ ALTER TABLE `login_logs`
 ALTER TABLE `ojt_assignments`
   ADD CONSTRAINT `ojt_assignments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `ojt_assignments_ibfk_2` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`);
+
+--
+-- Constraints for table `progress`
+--
+ALTER TABLE `progress`
+  ADD CONSTRAINT `progress_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

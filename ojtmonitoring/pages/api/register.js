@@ -6,11 +6,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { first_name, last_name, email, password, role } = req.body;
+  const { first_name, last_name, email, password, role, student_id } = req.body;
 
   // Validate input
-  if (!first_name || !last_name || !email || !password) {
-    return res.status(400).json({ message: 'First name, last name, email, and password are required' });
+  if (!first_name || !last_name || !email || !password || !student_id) {
+    return res.status(400).json({ message: 'First name, last name, email, password, and student ID are required' });
   }
 
   // Validate role
@@ -29,10 +29,10 @@ export default async function handler(req, res) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insert the new user into the database
+    // Insert the new user into the database with the student_id
     await db.query(
-      'INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)',
-      [first_name, last_name, email, hashedPassword, role || 'student'] // Default role is 'student'
+      'INSERT INTO users (student_id, first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?, ?)',
+      [student_id, first_name, last_name, email, hashedPassword, role || 'student'] // Default role is 'student'
     );
 
     res.status(201).json({ message: 'User registered successfully' });
