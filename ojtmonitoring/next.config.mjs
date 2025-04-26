@@ -2,5 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
 };
-
+module.exports = {
+  allowedDevOrigins: ['local-origin.dev', '*.local-origin.dev'],
+}
 export default nextConfig;
