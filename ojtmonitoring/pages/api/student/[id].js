@@ -1,5 +1,3 @@
-// pages/api/student/[id].js
-
 import db from '@/lib/db';
 
 export default async function handler(req, res) {
@@ -8,7 +6,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Fetch student profile
+      // Fetch student profile based on user id
       const [user] = await db.execute(
         'SELECT first_name, last_name, email, student_id FROM users WHERE id = ? AND role = "student"',
         [id]
@@ -34,7 +32,7 @@ export default async function handler(req, res) {
 
       console.log('Fetched attendance for today:', attendance);
 
-      // Fetch total hours completed
+      // Fetch total hours completed (progress table)
       const [progress] = await db.execute(
         'SELECT SUM(hours_completed) AS total_hours FROM progress WHERE student_id = ?',
         [student_id]

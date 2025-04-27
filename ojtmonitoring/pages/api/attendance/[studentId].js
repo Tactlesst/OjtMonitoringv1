@@ -1,26 +1,26 @@
 import db from '@/lib/db';
 
 export default async function handler(req, res) {
-  const { studentId } = req.query;
-  console.log('Incoming request for attendance with studentId:', studentId);
+  const { studentId, date } = req.query;
+  console.log('Incoming request for attendance with studentId:', studentId, 'and date:', date);
 
   if (req.method === 'GET') {
     try {
-      // Get today's date
-      const today = new Date().toISOString().split('T')[0];
-      console.log("Today's date:", today);
+      // Get the date to query (use query parameter or default to today's date)
+      const queryDate = date || new Date().toISOString().split('T')[0];
+      console.log("Query date:", queryDate);
 
-      // Fetch today's attendance for the student with updated column names
+      // Fetch attendance for the student on the specified date
       const [attendance] = await db.execute(
         'SELECT checkin_morning, checkout_morning, status_morning, checkin_afternoon, checkout_afternoon, status_afternoon FROM attendance WHERE student_id = ? AND date = ?',
-        [studentId, today]
+        [studentId, queryDate]
       );
 
-      console.log('Fetched attendance for today:', attendance);
+      console.log('Fetched attendance for date:', queryDate, attendance);
 
       if (!attendance || attendance.length === 0) {
-        console.log('No attendance found for studentId:', studentId);
-        return res.status(404).json({ message: 'No attendance found for today' });
+        console.log('No attendance found for studentId:', studentId, 'on date:', queryDate);
+        return res.status(404).json({ message: 'No attendance found for the specified date' });
       }
 
       // Structure the data to return

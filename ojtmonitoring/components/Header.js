@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 export default function Header() {
   const [activeSection, setActiveSection] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,21 +24,84 @@ export default function Header() {
 
   return (
     <div className="bg-gradient-to-t from-blue-900 to-blue-800 text-white p-4 fixed top-0 w-full z-10 shadow-xl">
-      <div className="flex justify-between items-center pr-[150px] pl-[150px]">
+      <div className="flex justify-between items-center px-6 sm:px-16">
         <div className="flex gap-1">
           <img src="/Main_Logo.png" alt="Logo" className="h-10 w-10 rounded-full" />
           <img src="/Crim_Logo.jpg" alt="Logo" className="h-10 w-10 rounded-full" />
         </div>
-        <div className="flex space-x-10">
-          <a href="#HeroSection" className={`hover:font-bold transition-all ${activeSection === 'HeroSection' ? 'font-bold' : ''}`}>
+
+        {/* Desktop Navigation */}
+        <div className="hidden sm:flex space-x-10">
+          <a
+            href="#HeroSection"
+            className={`hover:font-bold transition-all ${
+              activeSection === 'HeroSection' ? 'font-bold' : ''
+            }`}
+          >
             Home
           </a>
-          <a href="#AboutUsSection" className={`hover:font-bold transition-all ${activeSection === 'AboutUsSection' ? 'font-bold' : ''}`}>
+          <a
+            href="#AboutUsSection"
+            className={`hover:font-bold transition-all ${
+              activeSection === 'AboutUsSection' ? 'font-bold' : ''
+            }`}
+          >
             About Us
           </a>
-          <a href="#ContactUsSection" className={`hover:font-bold transition-all ${activeSection === 'ContactUsSection' ? 'font-bold' : ''}`}>Contact Us</a>
-          <a href="/auth" className="hover:font-bold transition-all">Log In</a>
+          <a
+            href="#ContactUsSection"
+            className={`hover:font-bold transition-all ${
+              activeSection === 'ContactUsSection' ? 'font-bold' : ''
+            }`}
+          >
+            Contact Us
+          </a>
+          <a href="/auth" className="hover:font-bold transition-all">
+            Log In
+          </a>
         </div>
+
+        {/* Mobile Menu Icon */}
+        <div className="sm:hidden flex items-center">
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="text-white focus:outline-none"
+          >
+            ☰
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <div
+        className={`sm:hidden transition-all duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'block' : 'hidden'
+        } bg-blue-900 text-white p-4 mt-4`}
+      >
+        <a
+          href="#HeroSection"
+          className={`block py-2 ${activeSection === 'HeroSection' ? 'font-bold' : ''}`}
+        >
+          Home
+        </a>
+        <a
+          href="#AboutUsSection"
+          className={`block py-2 ${activeSection === 'AboutUsSection' ? 'font-bold' : ''}`}
+        >
+          About Us
+        </a>
+        <a
+          href="#ContactUsSection"
+          className={`block py-2 ${activeSection === 'ContactUsSection' ? 'font-bold' : ''}`}
+        >
+          Contact Us
+        </a>
+        <a
+          href="/auth"
+          className="block py-2 font-bold"
+        >
+          Log In
+        </a>
       </div>
     </div>
   );

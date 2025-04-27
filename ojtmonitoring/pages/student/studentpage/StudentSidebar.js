@@ -38,10 +38,13 @@ export default function StudentSidebar({ selectedPage, onPageChange, user }) {
           {/* Conditionally render student data */}
           {studentData ? (
             <div className="mt-2 text-center">
-              <p className="text-sm font-semibold">{studentData.name}</p>
-              <p className="text-xs text-blue-300">Student ID: {studentData.studentId || 'N/A'}</p>
-              <p className="text-xs text-blue-300">Email: {studentData.email || 'N/A'}</p>
-            </div>
+  <p className="text-sm font-semibold capitalize">
+    {studentData.name}
+  </p>
+  <p className="text-xs text-blue-300">Student ID: {studentData.studentId || 'N/A'}</p>
+  <p className="text-xs text-blue-300">Email: {studentData.email || 'N/A'}</p>
+</div>
+
           ) : (
             <div className="mt-2 text-center">
               <p className="text-sm font-semibold">Loading...</p>

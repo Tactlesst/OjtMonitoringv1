@@ -1,4 +1,3 @@
-// components/StudentDashboard.js
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getCurrentUser } from '@/utils/auth'; // Your existing getCurrentUser function
@@ -56,7 +55,7 @@ export default function StudentDashboard() {
       <div className="flex-1 p-6">
         <div className="max-w-5xl mx-auto">
           {selectedPage === 'home' && <HomePage user={user} studentData={studentData} />}
-          {selectedPage === 'attendance' && <AttendancePage user={user} />}
+          {selectedPage === 'attendance' && <AttendancePage user={user} studentData={studentData} />} {/* Pass student data */}
           {selectedPage === 'guidelines' && <GuidelinesPage user={user} />}
           {selectedPage === 'logs' && <Logs user={user} />}
         </div>

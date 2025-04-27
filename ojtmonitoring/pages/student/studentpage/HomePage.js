@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import QRCode from 'qr.js';
 import ReactCalendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import dayjs from 'dayjs';
 
 const HomePage = ({ user }) => {
   const [studentData, setStudentData] = useState(null);
   const [attendanceData, setAttendanceData] = useState(null);
+  const [yesterdayAttendanceData, setYesterdayAttendanceData] = useState(null); // Store yesterday's attendance
   const [showQRCodeModal, setShowQRCodeModal] = useState(false);
   const canvasRef = useRef(null);
   const [markedDates, setMarkedDates] = useState([]);
@@ -25,6 +27,12 @@ const HomePage = ({ user }) => {
           const attendanceRes = await fetch(`/api/attendance/${user.userId}`);
           const attendanceData = await attendanceRes.json();
           setAttendanceData(attendanceData);
+
+          // Fetch yesterday's attendance data
+          const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+          const yesterdayAttendanceRes = await fetch(`/api/attendance/${user.userId}?date=${yesterday}`);
+          const yesterdayAttendanceData = await yesterdayAttendanceRes.json();
+          setYesterdayAttendanceData(yesterdayAttendanceData);
 
           setLoading(false);
         } catch (error) {
@@ -81,7 +89,7 @@ const HomePage = ({ user }) => {
     firstName2: studentData?.name?.split(' ')[1] || '',
     lastName: studentData?.name?.split(' ')[2] || '',
     totalHours: studentData?.totalHours || 0,
-        email: studentData?.email || '',
+    email: studentData?.email || '',
     student_id: studentData?.studentId || ''
   });
 
@@ -106,11 +114,55 @@ const HomePage = ({ user }) => {
 
   if (loading) return <div>Loading...</div>;
 
+  const renderAttendance = (attendance) => {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-gray-100 rounded-md p-3">
+          <h4 className="font-semibold">Morning</h4>
+          <p className="text-sm text-gray-600">Check-in Time</p>
+          <p className="font-medium">{attendance?.morning?.checkIn || 'Not Available'}</p>
+
+          <p className="text-sm text-gray-600 mt-1">Check-out Time</p>
+          <p className="font-medium">{attendance?.morning?.checkOut || 'Not Available'}</p>
+
+          <p className="text-sm text-gray-600 mt-1">Status</p>
+          <p className={`font-medium capitalize ${
+            attendance?.morning?.status === 'present' ? 'text-green-600' :
+            attendance?.morning?.status === 'late' ? 'text-yellow-600' :
+            'text-red-600'
+          }`}>
+            {attendance?.morning?.status || 'N/A'}
+          </p>
+        </div>
+
+        <div className="bg-gray-100 rounded-md p-3">
+          <h4 className="font-semibold">Afternoon</h4>
+          <p className="text-sm text-gray-600">Check-in Time</p>
+          <p className="font-medium">{attendance?.afternoon?.checkIn || 'Not Available'}</p>
+
+          <p className="text-sm text-gray-600 mt-1">Check-out Time</p>
+          <p className="font-medium">{attendance?.afternoon?.checkOut || 'Not Available'}</p>
+
+          <p className="text-sm text-gray-600 mt-1">Status</p>
+          <p className={`font-medium capitalize ${
+            attendance?.afternoon?.status === 'present' ? 'text-green-600' :
+            attendance?.afternoon?.status === 'late' ? 'text-yellow-600' :
+            'text-red-600'
+          }`}>
+            {attendance?.afternoon?.status || 'N/A'}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
       <div className="flex items-center mb-4">
         <div>
-          <h2 className="text-xl font-semibold">Welcome Back, {studentData?.name || 'Student'}!</h2>
+          <h2 className="text-xl font-semibold">
+            Welcome Back, <span className="capitalize">{studentData?.name || 'Student'}</span>!
+          </h2>
           <p className="text-sm text-gray-500">Your OJT progress is on track</p>
         </div>
       </div>
@@ -142,71 +194,16 @@ const HomePage = ({ user }) => {
         </button>
       </div>
 
-      {showQRCodeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Scan QR Code for Attendance</h3>
-              <button onClick={toggleQRCodeModal} className="text-gray-500 hover:text-gray-700">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-            <div className="flex justify-center items-center mb-4">
-              <canvas ref={canvasRef} width={256} height={256} />
-            </div>
-            <p className="text-center text-sm text-gray-500 mt-2">Scan this QR code at the station to mark your attendance.</p>
-          </div>
-        </div>
-      )}
-
+      {/* Today's Attendance */}
       <div className="bg-white shadow-sm rounded-md p-4 mb-6">
         <h3 className="text-lg font-semibold mb-2">Today's Attendance</h3>
+        {attendanceData ? renderAttendance(attendanceData) : <p>No records found for today.</p>}
+      </div>
 
-        {!attendanceData || (!attendanceData.morning && !attendanceData.afternoon) ? (
-          <div className="text-center text-gray-500 py-6">
-            <p className="text-sm">No attendance records found for today.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-100 rounded-md p-3">
-              <h4 className="font-semibold">Morning</h4>
-              <p className="text-sm text-gray-600">Check-in Time</p>
-              <p className="font-medium">{attendanceData?.morning?.checkIn || 'Not Available'}</p>
-
-              <p className="text-sm text-gray-600 mt-1">Check-out Time</p>
-              <p className="font-medium">{attendanceData?.morning?.checkOut || 'Not Available'}</p>
-
-              <p className="text-sm text-gray-600 mt-1">Status</p>
-              <p className={`font-medium capitalize ${
-                attendanceData?.morning?.status === 'present' ? 'text-green-600' :
-                attendanceData?.morning?.status === 'late' ? 'text-yellow-600' :
-                'text-red-600'
-              }`}>
-                {attendanceData?.morning?.status || 'N/A'}
-              </p>
-            </div>
-
-            <div className="bg-gray-100 rounded-md p-3">
-              <h4 className="font-semibold">Afternoon</h4>
-              <p className="text-sm text-gray-600">Check-in Time</p>
-              <p className="font-medium">{attendanceData?.afternoon?.checkIn || 'Not Available'}</p>
-
-              <p className="text-sm text-gray-600 mt-1">Check-out Time</p>
-              <p className="font-medium">{attendanceData?.afternoon?.checkOut || 'Not Available'}</p>
-
-              <p className="text-sm text-gray-600 mt-1">Status</p>
-              <p className={`font-medium capitalize ${
-                attendanceData?.afternoon?.status === 'present' ? 'text-green-600' :
-                attendanceData?.afternoon?.status === 'late' ? 'text-yellow-600' :
-                'text-red-600'
-              }`}>
-                {attendanceData?.afternoon?.status || 'N/A'}
-              </p>
-            </div>
-          </div>
-        )}
+      {/* Yesterday's Attendance */}
+      <div className="bg-white shadow-sm rounded-md p-4 mb-6">
+        <h3 className="text-lg font-semibold mb-2">Yesterday's Attendance</h3>
+        {yesterdayAttendanceData ? renderAttendance(yesterdayAttendanceData) : <p>No records found for yesterday.</p>}
       </div>
 
       <div className="bg-white shadow-md rounded-2xl p-6 mb-6 border border-gray-200">

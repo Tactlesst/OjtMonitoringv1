@@ -10,11 +10,12 @@ export default async function handler(req, res) {
       );
       const data = await response.json();
   
-      const holidays = data.response.holidays.map(h => ({
+      const holidays = data.response?.holidays?.map(h => ({
         date: h.date.iso.split('T')[0],
         name: h.name,
         type: h.type,
-      }));
+      })) || [];
+      
   
       res.status(200).json(holidays);
     } catch (error) {
