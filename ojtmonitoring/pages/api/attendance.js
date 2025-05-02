@@ -1,4 +1,3 @@
-// pages/api/attendance.js
 import db from '@/lib/db';
 import dayjs from 'dayjs';
 
@@ -38,12 +37,24 @@ export default async function handler(req, res) {
   try {
     // Check if record exists for today
     const [rows] = await db.query(
-      'SELECT id FROM attendance WHERE student_id = ? AND date = ?',
+      'SELECT id, checkin_morning, checkout_morning FROM attendance WHERE student_id = ? AND date = ?',
       [studentId, date]
     );
 
     if (rows.length) {
       const existing = rows[0];
+
+      // If it's morning and there's no checkin but checkout is present, mark as late
+      if (isMorning && !existing.checkin_morning && existing.checkout_morning) {
+        // Update status as late for the morning
+        await db.query(
+          `UPDATE attendance SET ${statusField} = 'late', updated_at = NOW() WHERE id = ?`,
+          [existing.id]
+        );
+        return res.status(200).json({
+          message: 'Morning session marked as late due to checkout without check-in.',
+        });
+      }
 
       // Prevent duplicate same-period check-in
       const [alreadyChecked] = await db.query(
@@ -55,7 +66,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ message: 'You already scanned for this period.' });
       }
 
-      // Update record
+      // If it's a regular check-in or check-out, update as normal
       await db.query(
         `UPDATE attendance SET ${field} = ?, ${statusField} = ?, updated_at = NOW() WHERE id = ?`,
         [time, status, existing.id]

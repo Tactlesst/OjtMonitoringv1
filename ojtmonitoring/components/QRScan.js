@@ -22,7 +22,7 @@ export default function QRScan() {
     return hour < 12 ? 'Morning' : 'Afternoon';
   };
 
-  const addLog = (text, success = true, status = '', firstName = '', lastName = '', userId = '',student_id='') => {
+  const addLog = (text, success = true, status = '', firstName = '', lastName = '', userId = '', student_id = '') => {
     const newLog = {
       time: new Date().toLocaleString(),
       text,
@@ -42,6 +42,7 @@ export default function QRScan() {
     // Update state to show the logs in the component
     setLogs(storedLogs);
   };
+
   const getScanType = () => {
     const hour = dayjs().hour();
     if (hour < 11) {
@@ -54,7 +55,7 @@ export default function QRScan() {
       return 'Afternoon Check-Out';
     }
   };
-  
+
   const playScanSound = () => {
     const audio = new Audio('/sounds/scan.mp3');
     audio.play().catch((err) => {
@@ -64,131 +65,148 @@ export default function QRScan() {
 
   const startScanner = async () => {
     setTimePeriod(getTimePeriod());
-    
+
     try {
-      const devices = await Html5Qrcode.getCameras();
-      if (!devices?.length) {
-        showAlert('No Camera', 'No camera devices found.', 'error');
-        return;
-      }
-  
-      const scanner = new Html5Qrcode(qrRegionId);
-      scannerRef.current = scanner;
-  
-      await scanner.start(
-        { facingMode: "environment" }, // 🔥 Use back camera on phone
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        async (decodedText) => {
-          if (isProcessing.current) return; // 🔥 prevent double scan
-          isProcessing.current = true;
-          playScanSound();
-          addLog(`Scanned: ${decodedText}`, true);
-  
-          try {
-            const qrData = JSON.parse(decodedText);
-  
-            if (!qrData.userId || isNaN(qrData.userId)) {
-              addLog('Invalid QR data: No valid userId found', false);
-              await showAlert('Invalid QR', 'No valid userId found in the QR.', 'error');
-              return;
-            }
-  
-            const { userId, firstName,firstName2, lastName,student_id } = qrData; // Extract firstName, lastName, and userId
-            const currentTime = dayjs();
-            const checkInTime = currentTime.format('HH:mm');
-            let status = 'present';
-            let checkInField = 'checkin_morning';
-            let statusField = 'status_morning';
-  
-            if (getTimePeriod() === 'Morning') {
-              if (currentTime.isAfter(dayjs().hour(8).minute(0))) {
-                status = 'late';
-              }
-            } else {
-              checkInField = 'checkin_afternoon';
-              statusField = 'status_afternoon';
-              if (currentTime.isAfter(dayjs().hour(13).minute(0))) {
-                status = 'late';
-              }
-            }
-  
-            // Check if it's a check-in or check-out
-            const isCheckout = currentTime.isAfter(dayjs().hour(11).minute(0)); // Example: Check-out after 11 AM
-            if (isCheckout) {
-              checkInField = getTimePeriod() === 'Morning' ? 'checkout_morning' : 'checkout_afternoon';
-              statusField = getTimePeriod() === 'Morning' ? 'status_morning' : 'status_afternoon';
-              status = 'present'; // or 'late' depending on the time
-            }
-
-            // Fetch the current attendance record for today
-            const res = await fetch('/api/attendance', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                userId, // Pass userId as student_id
-                firstName,
-                firstName2,
-                lastName,
-                student_id,
-                [checkInField]: checkInTime,
-                [statusField]: status,
-                date: currentTime.format('YYYY-MM-DD'),
-              }),
-            });
-  
-            const data = await res.json();
-  
-// Inside the try block after a successful attendance record creation
-if (res.status === 200) {
-  const fullName = `${firstName} ${firstName2} ${lastName} ${student_id}`;
-  addLog(`✅ ${data.message}`, true, data.message.includes('late') ? 'late' : 'present', firstName,firstName2, lastName, student_id);
-  await showAlert('Success', `${data.message} - ${fullName}`, 'success');
-}
- else if (res.status === 409) {
-              addLog(`⚠️ ${data.message}`, false, 'duplicate', firstName,firstName2, lastName, student_id);
-              await showAlert('Already Checked In', data.message, 'warning');
-            } else if (res.status === 500) {
-              addLog(`❌ No attendance record found`, false, 'absent', firstName,firstName2, lastName, student_id);
-              await showAlert('Attendance Not Found', 'No check-in or check-out recorded for today.', 'warning');
-            } else {
-              addLog(`❌ ${data.message}`, false, 'error', firstName,firstName2, lastName, student_id);
-              await showAlert('Error', data.message, 'error');
-            }
-          } catch (err) {
-            console.error('Error processing QR data:', err);
-            addLog('Invalid QR data', false);
-            await showAlert('Invalid QR', 'Failed to process the QR data.', 'error');
-          } finally {
-            try {
-              if (scannerRef.current) {
-                await scannerRef.current.stop();
-                await scannerRef.current.clear();
-              }
-            } catch (err) {
-              console.warn('Scanner already cleared.', err);
-            } finally {
-              setScanning(false);
-              isProcessing.current = false;
-              setLoading(false);
-              setTimeout(() => {
-                setScanning(true);
-                startScanner();
-              }, 3000); // Retry after 3 seconds
-            }
-          }
-        },
-        (errorMsg) => {
-          console.warn('QR scan error:', errorMsg);
+        const devices = await Html5Qrcode.getCameras();
+        if (!devices?.length) {
+            showAlert('No Camera', 'No camera devices found.', 'error');
+            return;
         }
-      );
-    } catch (err) {
-      console.error('Init error:', err);
-      showAlert('Scanner Error', 'Failed to start scanner.', 'error');
-    }
-  };
 
-  // Load logs from localStorage on page load
-  useEffect(() => {
+        const scanner = new Html5Qrcode(qrRegionId);
+        scannerRef.current = scanner;
+
+        await scanner.start(
+            { facingMode: "environment" }, // 🔥 Use back camera on phone
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            async (decodedText) => {
+                if (isProcessing.current) return; // 🔥 prevent double scan
+                isProcessing.current = true;
+                playScanSound();
+                addLog(`Scanned: ${decodedText}`, true);
+
+                try {
+                    const qrData = JSON.parse(decodedText);
+
+                    if (!qrData.userId || isNaN(qrData.userId)) {
+                        addLog('Invalid QR data: No valid userId found', false);
+                        await showAlert('Invalid QR', 'No valid userId found in the QR.', 'error');
+                        return;
+                    }
+
+                    const { userId, firstName, firstName2, lastName, student_id } = qrData; 
+                    const currentTime = dayjs();
+                    const checkInTime = currentTime.format('HH:mm');
+                    let status = 'present';
+                    let checkInField = 'checkin_morning';
+                    let statusField = 'status_morning';
+
+                    // Set status based on time of day
+                    if (getTimePeriod() === 'Morning') {
+                        if (currentTime.isAfter(dayjs().hour(8).minute(0))) {
+                            status = 'late';
+                        }
+                    } else {
+                        checkInField = 'checkin_afternoon';
+                        statusField = 'status_afternoon';
+                        if (currentTime.isAfter(dayjs().hour(13).minute(0))) {
+                            status = 'late';
+                        }
+                    }
+
+                    // Check if it's a check-in or check-out
+                    const isCheckout = getScanType().includes('Check-Out');
+                    if (isCheckout) {
+                      // Determine check-in and check-out fields
+                      checkInField = timePeriod === 'Morning' ? 'checkout_morning' : 'checkout_afternoon';
+                      statusField = timePeriod === 'Morning' ? 'status_morning' : 'status_afternoon';
+                    
+                      // Fetch today's attendance to check if check-in exists
+                      const existingRes = await fetch(`/api/attendance/find?userId=${userId}&date=${currentTime.format('YYYY-MM-DD')}`);
+                      const existing = await existingRes.json();
+                    
+                      const checkinFieldName = timePeriod === 'Morning' ? 'checkin_morning' : 'checkin_afternoon';
+                      const hadCheckin = existing?.attendance?.[checkinFieldName];
+                    
+                      if (hadCheckin) {
+                        status = 'present';
+                      } else {
+                        status = 'late'; // or 'absent' if you prefer
+                      }
+                    }
+                    
+
+                    // Fetch current attendance record
+                    const res = await fetch('/api/attendance', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userId, 
+                            firstName,
+                            firstName2,
+                            lastName,
+                            student_id,
+                            [checkInField]: checkInTime,
+                            [statusField]: status,
+                            date: currentTime.format('YYYY-MM-DD'),
+                        }),
+                    });
+
+                    const data = await res.json();
+
+                    if (res.status === 200) {
+                        const fullName = `${firstName} ${firstName2} ${lastName} (${student_id})`;
+                        addLog(`✅ ${data.message}`, true, data.message.includes('late') ? 'late' : 'present', firstName, firstName2, lastName, student_id);
+                        await showAlert('Success', `${data.message} - ${fullName}`, 'success');
+                    } else if (res.status === 409) {
+                        addLog(`⚠️ ${data.message}`, false, 'duplicate', firstName, firstName2, lastName, student_id);
+                        await showAlert('Already Checked In', data.message, 'warning');
+                    } else if (res.status === 500) {
+                        addLog(`❌ No attendance record found`, false, 'absent', firstName, firstName2, lastName, student_id);
+                        await showAlert('Attendance Not Found', 'No check-in or check-out recorded for today.', 'warning');
+                    } else {
+                        addLog(`❌ ${data.message}`, false, 'error', firstName, firstName2, lastName, student_id);
+                        await showAlert('Error', data.message, 'error');
+                    }
+                } catch (err) {
+                    console.error('Error processing QR data:', err);
+                    addLog('Invalid QR data', false);
+                    await showAlert('Invalid QR', 'Failed to process the QR data.', 'error');
+                } finally {
+                    await stopScanner();
+                    setScanning(false);
+                    isProcessing.current = false;
+                    setLoading(false);
+                    setTimeout(() => {
+                        setScanning(true);
+                        startScanner();
+                    }, 3000); // Retry after 3 seconds
+                }
+            },
+            (errorMsg) => {
+                console.warn('QR scan error:', errorMsg);
+            }
+        );
+    } catch (err) {
+        console.error('Init error:', err);
+        showAlert('Scanner Error', 'Failed to start scanner.', 'error');
+    }
+};
+
+// Cleanup scanner on unmount
+const stopScanner = async () => {
+    try {
+        if (scannerRef.current) {
+            await scannerRef.current.stop();
+            await scannerRef.current.clear();
+        }
+    } catch (err) {
+        console.warn('Error during cleanup:', err);
+    }
+};
+
+// Load logs from localStorage on page load
+useEffect(() => {
     const storedLogs = JSON.parse(localStorage.getItem('qrLogs')) || [];
     setLogs(storedLogs);
 
@@ -197,38 +215,33 @@ if (res.status === 200) {
     startScanner();
 
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().then(() => {
-          scannerRef.current.clear();
-        }).catch((err) => {
-          console.warn('Error during cleanup:', err);
-        });
-      }
+        stopScanner();
     };
-  }, []);
+}, []);
 
-  useEffect(() => {
+// Create missing attendance records
+useEffect(() => {
     const createAttendanceRecords = async () => {
-      try {
-        const res = await fetch('/api/attendance/create', {
-          method: 'POST',
-        });
-  
-        const data = await res.json();
-        console.log(data.message); // Success message
-      } catch (err) {
-        console.error('Error creating attendance records:', err);
-      }
+        try {
+            const res = await fetch('/api/attendance/create', {
+                method: 'POST',
+            });
+
+            const data = await res.json();
+            console.log(data.message); // Success message
+        } catch (err) {
+            console.error('Error creating attendance records:', err);
+        }
     };
-  
+
     createAttendanceRecords(); // Call the function to create missing records
-  }, []);
+}, []);
+
 
   return (
     <div className="text-center px-4">
       <p className="text-gray-700 mb-2 text-lg font-semibold">QR Attendance Scanner</p>
       <p className="text-blue-500 font-medium">{getScanType()}</p>
-
 
       <div
         id={qrRegionId}
