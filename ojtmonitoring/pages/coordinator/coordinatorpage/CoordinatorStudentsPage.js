@@ -1,166 +1,235 @@
-// components/coordinator/CoordinatorStudentsPage.js
-import { useState } from 'react';
-import AddStudentModal from './AddStudentModal'; // Import the modal component
+import { useState, useEffect } from 'react';
 
-export default function CoordinatorStudentsPage({ user }) {
-    const [activeTab, setActiveTab] = useState('list');
-    const [students, setStudents] = useState([
-        {
-            id: 1,
-            schoolId: 'C230049',
-            fullName: 'Jerrel John Del Puerto',
-            course: 'BSCRIM',
-            contact: '09977295462',
-            email: 'jerreljohndelpuerto@gmail.com',
-            address: 'Brgy. 1',
-            schoolYear: '2024-2025',
-            organization: 'Fire Station',
-        },
-        // Add more student data here
-    ]);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+export default function StudentPage() {
+  const [students, setStudents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editStudent, setEditStudent] = useState(null);
+  const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    student_id: '',
+  });
 
-    const openAddModal = () => {
-        setIsAddModalOpen(true);
-    };
+  useEffect(() => {
+    fetchStudents();
+  }, [searchTerm]);
 
-    const closeAddModal = () => {
-        setIsAddModalOpen(false);
-    };
+  const fetchStudents = async () => {
+    try {
+      const res = await fetch(`/api/studentdata?search=${searchTerm}`);
+      const data = await res.json();
+      setStudents(data);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+    }
+  };
 
-    const handleAddStudent = (newStudent) => {
-        // In a real application, you would send this data to your API
-        console.log('Adding new student:', newStudent);
-        setStudents([...students, { id: Date.now(), ...newStudent }]); // Update local state
-        closeAddModal();
-    };
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
-    return (
-        <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Students</h2>
+  const handleAddClick = () => {
+    setEditStudent(null);
+    setFormData({
+      first_name: '',
+      last_name: '',
+      email: '',
+      student_id: '',
+    });
+    setModalOpen(true);
+  };
 
-            <div className="bg-white shadow-md rounded-lg p-6">
-                {/* Tab Navigation */}
-                <div className="flex border-b mb-4">
-                    <button
-                        className={`py-2 px-4 ${
-                            activeTab === 'list'
-                                ? 'border-b-2 border-blue-600 text-blue-600 font-semibold'
-                                : 'text-gray-600'
-                        }`}
-                        onClick={() => setActiveTab('list')}
-                    >
-                        Students List
-                    </button>
-                    <button
-                        className={`py-2 px-4 ${
-                            activeTab === 'add'
-                                ? 'border-b-2 border-blue-600 text-blue-600 font-semibold'
-                                : 'text-gray-600'
-                        }`}
-                        onClick={() => setActiveTab('add')}
-                    >
-                        + Add New
-                    </button>
-                </div>
+  const handleEditClick = (student) => {
+    setEditStudent(student);
+    setFormData({
+      id: student.id,
+      first_name: student.first_name,
+      last_name: student.last_name,
+      email: student.email,
+      student_id: student.student_id,
+    });
+    setModalOpen(true);
+  };
 
-                {/* Search Bar and Filters */}
-                {activeTab === 'list' && (
-                    <div className="mb-4">
-                        <div className="flex items-center mb-2">
-                            <input
-                                type="text"
-                                placeholder="Search here"
-                                className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                            />
-                            <button
-                                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ml-2"
-                            >
-                                Search
-                            </button>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div>
-                                <label htmlFor="courseFilter" className="block text-gray-700 text-sm font-bold mb-1">Course</label>
-                                <select id="courseFilter" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
-                                    <option>All</option>
-                                    <option>BSCRIM</option>
-                                    {/* Add more courses */}
-                                </select>
-                            </div>
-                            <div>
-                                <label htmlFor="yearLevelFilter" className="block text-gray-700 text-sm font-bold mb-1">Year Level</label>
-                                <select id="yearLevelFilter" className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
-                                    <option>All</option>
-                                    <option>2024-2025</option>
-                                    {/* Add more year levels */}
-                                </select>
-                            </div>
-                            {/* Add more filters if needed */}
-                        </div>
-                    </div>
-                )}
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
-                {/* Student List Table */}
-                {activeTab === 'list' && (
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full leading-normal">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">#</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">SCHOOL ID</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">FULL NAME</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">COURSE</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">CONTACT</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">EMAIL</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ADDRESS</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">SCHOOL YEAR</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ORGANIZATION</th>
-                                    <th className="px-3 py-3 border-b-2 border-gray-200 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {students.map((student, index) => (
-                                    <tr key={student.id}>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{index + 1}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.schoolId}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.fullName}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.course}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.contact}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.email}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.address}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.schoolYear}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">{student.organization}</td>
-                                        <td className="px-3 py-2 border-b border-gray-200 text-sm">
-                                            {/* Add action buttons here, e.g., View, Edit, Delete */}
-                                            <button className="bg-green-500 text-white py-1 px-2 rounded-md hover:bg-green-600 text-xs">
-                                                +
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const method = formData.id ? 'PUT' : 'POST';
+      const url = formData.id ? `/api/studentdata/${formData.id}` : '/api/studentdata';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      alert(data.message);
+      setModalOpen(false);
+      fetchStudents();
+    } catch (err) {
+      console.error('Error saving student:', err);
+    }
+  };
 
-                {/* Add New Student Section */}
-                {activeTab === 'add' && (
-                    <div>
-                        <h3 className="text-xl font-semibold mb-4">Add New Student</h3>
-                        <p>Click the button below to open the add student form.</p>
-                        <button
-                            onClick={openAddModal}
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        >
-                            Add New Student
-                        </button>
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="bg-blue-50 min-h-screen py-8">
+      <div className="container mx-auto px-4 shadow-md rounded-lg bg-white">
+        <h2 className="text-3xl font-semibold text-blue-700 mb-6 border-b-2 pb-2">
+          Student Management
+        </h2>
 
-            {/* Add Student Modal */}
-            <AddStudentModal isOpen={isAddModalOpen} onClose={closeAddModal} onAdd={handleAddStudent} />
+        <div className="flex justify-between items-center mb-6">
+          <input
+            type="text"
+            placeholder="Search students by name"
+            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3 mr-4"
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <button
+            onClick={handleAddClick}
+            className="bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add New
+          </button>
         </div>
-    );
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto border-collapse mt-4">
+            <thead className="bg-blue-100 text-blue-700">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium">STUDENT NAME</th>
+                <th className="px-4 py-3 text-left font-medium">STUDENT ID</th>
+                <th className="px-4 py-3 text-left font-medium">EMAIL</th>
+                <th className="px-4 py-3 text-left font-medium">ACTION</th>
+              </tr>
+            </thead>
+            <tbody className="text-gray-700">
+              {students.map((student) => (
+                <tr key={student.id} className="hover:bg-blue-50 transition-colors">
+                  <td className="border px-4 py-3">{`${student.first_name} ${student.last_name}`}</td>
+                  <td className="border px-4 py-3">{student.student_id}</td>
+                  <td className="border px-4 py-3">{student.email}</td>
+                  <td className="border px-4 py-3">
+                    <button
+                      onClick={() => handleEditClick(student)}
+                      className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-green-400"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {students.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="px-4 py-3 text-center text-gray-500 italic">
+                    No students found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Modal for Add/Edit */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 bg-gray-600 bg-opacity-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-8 w-full max-w-lg shadow-xl">
+              <h3 className="text-2xl font-semibold text-blue-700 mb-6 border-b-2 pb-2">
+                {editStudent ? 'Edit Student' : 'Add New Student'}
+              </h3>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                  <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    id="first_name"
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleFormChange}
+                    required
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="last_name"
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleFormChange}
+                    required
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="student_id" className="block text-sm font-medium text-gray-700">
+                    Student ID
+                  </label>
+                  <input
+                    type="text"
+                    id="student_id"
+                    name="student_id"
+                    value={formData.student_id}
+                    onChange={handleFormChange}
+                    required
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    required
+                    className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-3"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="mr-3 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {editStudent ? 'Update' : 'Add'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }

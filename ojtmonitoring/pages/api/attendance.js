@@ -31,7 +31,7 @@ export default async function handler(req, res) {
 
   const statusField = isMorning ? 'status_morning' : 'status_afternoon';
   const isLate =
-    (!isMorning && !isCheckout && hour >= 13) || (isMorning && !isCheckout && hour >= 8);
+    (!isMorning && !isCheckout && hour >= 14) || (isMorning && !isCheckout && hour >= 11);
   const status = isLate ? 'late' : 'present';
 
   try {

@@ -36,8 +36,7 @@ export default function StudentSidebar({ selectedPage, onPageChange, user }) {
           <p className="text-sm text-blue-200 text-center">Student Portal</p>
 
           {/* Conditionally render student data */}
-          {studentData ? (
-            <div className="mt-2 text-center">
+          {studentData ? ( <div className="mt-2 text-center">
   <p className="text-sm font-semibold capitalize">
     {studentData.name}
   </p>

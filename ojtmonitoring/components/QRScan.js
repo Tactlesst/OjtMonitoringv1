@@ -64,7 +64,8 @@ export default function QRScan() {
   };
 
   const startScanner = async () => {
-    setTimePeriod(getTimePeriod());
+    const currentPeriod = getTimePeriod(); // Get once and use consistently
+    setTimePeriod(currentPeriod);
 
     try {
         const devices = await Html5Qrcode.getCameras();
@@ -77,10 +78,10 @@ export default function QRScan() {
         scannerRef.current = scanner;
 
         await scanner.start(
-            { facingMode: "environment" }, // 🔥 Use back camera on phone
+            { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 250 } },
             async (decodedText) => {
-                if (isProcessing.current) return; // 🔥 prevent double scan
+                if (isProcessing.current) return;
                 isProcessing.current = true;
                 playScanSound();
                 addLog(`Scanned: ${decodedText}`, true);
@@ -94,54 +95,58 @@ export default function QRScan() {
                         return;
                     }
 
-                    const { userId, firstName, firstName2, lastName, student_id } = qrData; 
+                    const { userId, firstName, firstName2, lastName, student_id } = qrData;
                     const currentTime = dayjs();
                     const checkInTime = currentTime.format('HH:mm');
                     let status = 'present';
                     let checkInField = 'checkin_morning';
                     let statusField = 'status_morning';
 
-                    // Set status based on time of day
-                    if (getTimePeriod() === 'Morning') {
-                        if (currentTime.isAfter(dayjs().hour(8).minute(0))) {
+                    if (currentPeriod === 'Morning') {
+                        if (currentTime.isAfter(dayjs().hour(11).minute(0))) {
                             status = 'late';
                         }
                     } else {
                         checkInField = 'checkin_afternoon';
                         statusField = 'status_afternoon';
-                        if (currentTime.isAfter(dayjs().hour(13).minute(0))) {
+                        if (currentTime.isAfter(dayjs().hour(15).minute(0))) {
                             status = 'late';
                         }
                     }
 
-                    // Check if it's a check-in or check-out
-                    const isCheckout = getScanType().includes('Check-Out');
-                    if (isCheckout) {
-                      // Determine check-in and check-out fields
-                      checkInField = timePeriod === 'Morning' ? 'checkout_morning' : 'checkout_afternoon';
-                      statusField = timePeriod === 'Morning' ? 'status_morning' : 'status_afternoon';
-                    
-                      // Fetch today's attendance to check if check-in exists
-                      const existingRes = await fetch(`/api/attendance/find?userId=${userId}&date=${currentTime.format('YYYY-MM-DD')}`);
-                      const existing = await existingRes.json();
-                    
-                      const checkinFieldName = timePeriod === 'Morning' ? 'checkin_morning' : 'checkin_afternoon';
-                      const hadCheckin = existing?.attendance?.[checkinFieldName];
-                    
-                      if (hadCheckin) {
-                        status = 'present';
-                      } else {
-                        status = 'late'; // or 'absent' if you prefer
-                      }
-                    }
-                    
+const isCheckout = getScanType().includes('Check-Out');
 
-                    // Fetch current attendance record
+if (isCheckout) {
+  checkInField = currentPeriod === 'Morning' ? 'checkout_morning' : 'checkout_afternoon';
+  statusField = currentPeriod === 'Morning' ? 'status_morning' : 'status_afternoon';
+
+  const existingRes = await fetch(`/api/attendance/find?userId=${userId}&date=${currentTime.format('YYYY-MM-DD')}`);
+  const existing = await existingRes.json();
+
+  const checkinFieldName = currentPeriod === 'Morning' ? 'checkin_morning' : 'checkin_afternoon';
+  const hadCheckin = existing?.attendance?.[checkinFieldName];
+
+  status = hadCheckin ? 'present' : 'late'; // Late only if there was no check-in
+} else {
+  if (currentPeriod === 'Morning') {
+    if (currentTime.isAfter(dayjs().hour(11).minute(0))) { // Morning check-in cutoff
+      status = 'late';
+    }
+  } else {
+    checkInField = 'checkin_afternoon';
+    statusField = 'status_afternoon';
+    if (currentTime.isAfter(dayjs().hour(14).minute(0))) { // Afternoon check-in cutoff
+      status = 'late';
+    }
+  }
+}
+
+
                     const res = await fetch('/api/attendance', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            userId, 
+                            userId,
                             firstName,
                             firstName2,
                             lastName,
@@ -156,7 +161,7 @@ export default function QRScan() {
 
                     if (res.status === 200) {
                         const fullName = `${firstName} ${firstName2} ${lastName} (${student_id})`;
-                        addLog(`✅ ${data.message}`, true, data.message.includes('late') ? 'late' : 'present', firstName, firstName2, lastName, student_id);
+                        addLog(`✅ ${data.message}`, true, data.message.includes('present') ? 'present' : 'late', firstName, firstName2, lastName, student_id);
                         await showAlert('Success', `${data.message} - ${fullName}`, 'success');
                     } else if (res.status === 409) {
                         addLog(`⚠️ ${data.message}`, false, 'duplicate', firstName, firstName2, lastName, student_id);
@@ -180,7 +185,7 @@ export default function QRScan() {
                     setTimeout(() => {
                         setScanning(true);
                         startScanner();
-                    }, 3000); // Retry after 3 seconds
+                    }, 3000);
                 }
             },
             (errorMsg) => {
