@@ -3,37 +3,66 @@ import db from '@/lib/db';
 import dayjs from 'dayjs';
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      const currentDate = dayjs().format('YYYY-MM-DD'); // Get today's date
-      // Get all users (only 'id' and 'student_id')
-      const [users] = await db.execute('SELECT id FROM users WHERE disabled = 0'); 
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method Not Allowed' });
+  }
 
-      // Create an array of promises for checking and inserting attendance records
-      const promises = users.map(async (user) => {
-        const [existingRecord] = await db.execute(
-          'SELECT * FROM attendance WHERE student_id = ? AND date = ?',
-          [user.id, currentDate]
+  try {
+    const currentDate = dayjs().format('YYYY-MM-DD');
+    const [users] = await db.execute('SELECT id FROM users WHERE disabled = 0');
+
+    let attendanceInserted = 0;
+    let attendanceSkipped = 0;
+    let progressCreated = 0;
+
+    const promises = users.map(async (user) => {
+      // 1. Check and create attendance
+      const [attendance] = await db.execute(
+        'SELECT id FROM attendance WHERE student_id = ? AND date = ?',
+        [user.id, currentDate]
+      );
+
+      if (!attendance || attendance.length === 0) {
+        await db.execute(
+          `INSERT INTO attendance 
+          (student_id, date, checkin_morning, checkout_morning, checkin_afternoon, checkout_afternoon, status_morning, status_afternoon) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [user.id, currentDate, null, null, null, null, null, null]
         );
+        attendanceInserted++;
+      } else {
+        attendanceSkipped++;
+      }
 
-        if (existingRecord.length === 0) {
-          // If no record exists, create a blank attendance record
-          await db.execute(
-            'INSERT INTO attendance (student_id, date, checkin_morning, checkout_morning, checkin_afternoon, checkout_afternoon, status_morning, status_afternoon) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [user.id, currentDate, null, null, null, null, null, null]
-          );
-        }
-      });
+      // 2. Check and create progress record
+      const [progress] = await db.execute(
+        'SELECT id FROM progress WHERE student_id = ?',
+        [user.id]
+      );
 
-      // Wait for all promises to complete
-      await Promise.all(promises);
+      if (!progress || progress.length === 0) {
+        await db.execute(
+          'INSERT INTO progress (student_id, hours_completed, task_completed) VALUES (?, ?, ?)',
+          [user.id, 0.00, 0]
+        );
+        progressCreated++;
+      }
+    });
 
-      res.status(200).json({ message: 'Attendance records checked and created if necessary' });
-    } catch (error) {
-      console.error('Error creating attendance records:', error);
-      res.status(500).json({ message: 'Error creating attendance records' });
-    }
-  } else {
-    res.status(405).json({ message: 'Method Not Allowed' });
+    await Promise.all(promises);
+
+    res.status(200).json({
+      message: 'Attendance and progress records handled.',
+      attendance: {
+        inserted: attendanceInserted,
+        skipped: attendanceSkipped
+      },
+      progress: {
+        created: progressCreated
+      }
+    });
+  } catch (error) {
+    console.error('Error initializing records:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 }

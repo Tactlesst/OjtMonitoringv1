@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     try {
       // Fetch student profile based on user id
       const [user] = await db.execute(
-        'SELECT first_name, last_name, email, student_id FROM users WHERE id = ? AND role = "student"',
+        'SELECT id,first_name, last_name, email, student_id FROM users WHERE id = ? AND role = "student"',
         [id]
       );
 
@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      const student_id = user[0].student_id;
+      const student_id = user[0].id;
       console.log('Fetched student_id:', student_id);
 
       // Get today's date

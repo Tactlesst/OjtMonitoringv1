@@ -309,20 +309,19 @@ const HomePage = ({ user }) => {
         </div>
       </div>
 
-      <div className="bg-gray-100 rounded-md p-4 mb-4">
-        <h3 className="text-lg font-semibold mb-2">Total Hours Completed</h3>
-        <div className="flex items-center">
-          <div className="bg-gray-200 rounded-full h-6 w-full relative">
-            <div
-              className="bg-blue-500 rounded-full h-6 absolute top-0 left-0"
-              style={{ width: `${(studentData?.totalHours / 600) * 100}%` }}
-            ></div>
-            <span className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-sm font-semibold">
-              {studentData?.totalHours || 0} / 600
-            </span>
-          </div>
-        </div>
-      </div>
+ <div className="bg-gray-100 rounded-md p-4 mb-4">
+  <h3 className="text-lg font-semibold mb-2">Total Hours Completed</h3>
+  <div className="relative w-full h-6 bg-gray-200 rounded-full overflow-hidden">
+    <div
+      className="h-full bg-blue-500 transition-all duration-300 ease-in-out"
+      style={{ width: `${Math.min((studentData?.totalHours / 600) * 100, 100)}%` }}
+    ></div>
+    <div className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-white">
+      {studentData?.totalHours || 0} / 600
+    </div>
+  </div>
+</div>
+
 
       <div className="flex space-x-4 mb-6">
         <button

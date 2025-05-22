@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import LoginForm from '../pages/login';
-import QRScan from '@/components/QRScan';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function Auth() {
-  const [activeTab, setActiveTab] = useState('login');
-
+  // No need for activeTab state if there's only login
   return (
     <div className="relative min-h-screen flex items-center justify-center p-6">
       {/* Background Image with Overlay */}
@@ -19,7 +17,7 @@ export default function Auth() {
           quality={100}
           priority
         />
-        <div className="absolute inset-0 bg-black/50"></div> {/* Black overlay with 50% opacity */}
+        <div className="absolute inset-0 bg-black/50"></div>
       </div>
 
       {/* Content container */}
@@ -30,37 +28,12 @@ export default function Auth() {
           <p className="text-gray-600">Online Interactive QJT monitoring</p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-4 mb-6">
-          <button
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              activeTab === 'login'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
-            }`}
-            onClick={() => setActiveTab('login')}
-          >
-            Log in
-          </button>
-          <button
-            className={`px-6 py-2 rounded-lg font-semibold transition ${
-              activeTab === 'qr'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-white text-blue-600 border border-blue-600 hover:bg-blue-50'
-            }`}
-            onClick={() => setActiveTab('qr')}
-          >
-            QR Scan
-          </button>
-        </div>
-
-        {/* Form Container */}
+        {/* Login Form */}
         <div className="mb-4">
-          {activeTab === 'login' ? <LoginForm /> : <QRScan />}
+          <LoginForm />
         </div>
 
         {/* Footer Links */}
-
         <Link href="/" className="mt-4 text-gray-500 hover:text-gray-700 text-sm block text-center">
           ← Back to Homepage
         </Link>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 03, 2025 at 07:15 AM
+-- Generation Time: May 22, 2025 at 08:49 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -107,7 +107,24 @@ INSERT INTO `attendance` (`id`, `student_id`, `checkin_morning`, `checkout_morni
 (36, 9, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-03', '2025-05-03 00:38:08', '2025-05-03 00:38:08'),
 (44, 6, '09:06:38', NULL, NULL, NULL, 'present', NULL, '2025-05-03', '2025-05-03 01:06:33', '2025-05-03 01:06:38'),
 (45, 11, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-03', '2025-05-03 05:10:51', '2025-05-03 05:10:51'),
-(46, 10, NULL, NULL, '13:11:01', NULL, NULL, 'present', '2025-05-03', '2025-05-03 05:10:51', '2025-05-03 05:11:01');
+(46, 10, NULL, NULL, '13:11:01', NULL, NULL, 'present', '2025-05-03', '2025-05-03 05:10:51', '2025-05-03 05:11:01'),
+(47, 7, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(48, 2, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(49, 8, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(50, 4, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(51, 11, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(52, 10, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(53, 3, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(54, 9, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-22', '2025-05-22 14:07:21', '2025-05-22 14:07:21'),
+(56, 2, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(57, 3, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(58, 7, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(60, 4, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(61, 8, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(62, 9, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(63, 11, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(64, 10, NULL, NULL, NULL, NULL, NULL, NULL, '2025-05-23', '2025-05-22 16:21:36', '2025-05-22 16:21:36'),
+(66, 6, '01:09:56', NULL, NULL, NULL, 'present', NULL, '2025-05-23', '2025-05-22 17:09:25', '2025-05-22 17:09:56');
 
 -- --------------------------------------------------------
 
@@ -229,7 +246,17 @@ INSERT INTO `login_logs` (`id`, `user_id`, `login_time`) VALUES
 (55, 3, '2025-05-03 04:53:34'),
 (56, 3, '2025-05-03 05:04:12'),
 (57, 10, '2025-05-03 05:08:31'),
-(58, 3, '2025-05-03 05:12:05');
+(58, 3, '2025-05-03 05:12:05'),
+(59, 6, '2025-05-03 05:52:26'),
+(60, 10, '2025-05-03 05:53:17'),
+(61, 6, '2025-05-22 14:11:41'),
+(62, 6, '2025-05-22 15:24:12'),
+(63, 6, '2025-05-22 15:42:59'),
+(64, 6, '2025-05-22 16:20:38'),
+(65, 6, '2025-05-22 16:35:48'),
+(66, 6, '2025-05-22 16:49:41'),
+(67, 6, '2025-05-22 17:09:34'),
+(68, 4, '2025-05-22 17:12:14');
 
 -- --------------------------------------------------------
 
@@ -283,11 +310,48 @@ INSERT INTO `organizations` (`id`, `name`, `address`, `contact_email`, `contact_
 CREATE TABLE `progress` (
   `id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
-  `hours_completed` decimal(5,2) DEFAULT 0.00,
+  `hours_completed` int(11) DEFAULT 0,
   `task_completed` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `progress`
+--
+
+INSERT INTO `progress` (`id`, `student_id`, `hours_completed`, `task_completed`, `created_at`, `updated_at`) VALUES
+(1, 2, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(2, 3, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(3, 11, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(4, 7, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(5, 9, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(6, 4, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(7, 8, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(9, 10, 0, 0, '2025-05-22 15:42:06', '2025-05-22 15:42:06'),
+(10, 6, 6, 0, '2025-05-22 16:44:09', '2025-05-22 17:10:15');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_evaluations`
+--
+
+CREATE TABLE `student_evaluations` (
+  `id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `evaluator_name` varchar(255) DEFAULT NULL,
+  `remarks` text DEFAULT NULL,
+  `rating` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `student_evaluations`
+--
+
+INSERT INTO `student_evaluations` (`id`, `student_id`, `evaluator_name`, `remarks`, `rating`, `created_at`) VALUES
+(4, 6, NULL, 'w', 1, '2025-05-22 18:47:47');
 
 -- --------------------------------------------------------
 
@@ -428,6 +492,19 @@ ALTER TABLE `organizations`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `progress`
+--
+ALTER TABLE `progress`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `student_evaluations`
+--
+ALTER TABLE `student_evaluations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `student_id` (`student_id`);
+
+--
 -- Indexes for table `student_organization_assignments`
 --
 ALTER TABLE `student_organization_assignments`
@@ -470,7 +547,7 @@ ALTER TABLE `archives`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT for table `companies`
@@ -494,7 +571,7 @@ ALTER TABLE `evaluations`
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `ojt_assignments`
@@ -507,6 +584,18 @@ ALTER TABLE `ojt_assignments`
 --
 ALTER TABLE `organizations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `progress`
+--
+ALTER TABLE `progress`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `student_evaluations`
+--
+ALTER TABLE `student_evaluations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `student_organization_assignments`
@@ -560,6 +649,12 @@ ALTER TABLE `login_logs`
 ALTER TABLE `ojt_assignments`
   ADD CONSTRAINT `ojt_assignments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   ADD CONSTRAINT `ojt_assignments_ibfk_2` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`);
+
+--
+-- Constraints for table `student_evaluations`
+--
+ALTER TABLE `student_evaluations`
+  ADD CONSTRAINT `student_evaluations_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`);
 
 --
 -- Constraints for table `student_organization_assignments`
